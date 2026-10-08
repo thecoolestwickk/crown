@@ -5,7 +5,7 @@ local CrownWorlds = require(ReplicatedStorage.CrownModules.CrownWorlds)
 local tool = script.Parent
 local crownActivatedEvent = tool:WaitForChild("CrownActivated")
 
--- TARGET DETAILS (Matches your required game configuration)
+-- target details
 local TARGET_PLACE_NAME = "crown."
 local SPAWN_TAG = "."
 
@@ -20,7 +20,7 @@ crownActivatedEvent.OnServerEvent:Connect(function(player)
 	local rootPart = character:FindFirstChild("HumanoidRootPart")
 	if not rootPart then return end
 
-	-- Verify that the target place name exists in your CrownWorlds module
+	-- verify that the target place name exists in the CrownWorlds module
 	local targetPlaceId = CrownWorlds.PlaceIds[TARGET_PLACE_NAME]
 	if not targetPlaceId then
 		warn("Error: Location index array holds no matching key for: " .. tostring(TARGET_PLACE_NAME))
@@ -29,23 +29,23 @@ crownActivatedEvent.OnServerEvent:Connect(function(player)
 
 	activeTransitions[player] = true
 
-	-- Wait exactly 3 seconds for the local spinning/rising effect to finish
+	-- wait 3 seconds for the local spinning/rising effect to finish
 	task.wait(3)
 
-	-- Create a cosmetic server-side explosion above their head
+	-- create a server-side explosion above their head
 	local explosion = Instance.new("Explosion")
 	explosion.Position = rootPart.Position + Vector3.new(0, 5, 0)
-	explosion.BlastRadius = 0 -- Keeps pressure and damage at 0
+	explosion.BlastRadius = 0 -- keeps pressure and damage at 0
 	explosion.BlastPressure = 0
 	explosion.Parent = workspace
 
-	-- Setup teleport parameters with the blank spawn tag
+	-- teleport parameters with the blank spawn tag
 	local teleportOptions = Instance.new("TeleportOptions")
 	teleportOptions:SetTeleportData({
 		ArrivalSpawnTag = SPAWN_TAG
 	})
 
-	-- Instantaneous Teleport Execution
+	-- teleport execution
 	local success, errorMessage = pcall(function()
 		TeleportService:TeleportAsync(targetPlaceId, {player}, teleportOptions)
 	end)

@@ -1,3 +1,4 @@
+-- define paths and variables
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 
@@ -10,6 +11,7 @@ local playerGui = player:WaitForChild("PlayerGui")
 local STEP_SIZE = 0.2
 local HOLD_DURATION_PER_STEP = 0.08
 
+-- runs when the remoteevent is called
 RequestFade.OnClientEvent:Connect(function()
 	
 	-- freeze player during transition

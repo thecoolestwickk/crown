@@ -1,3 +1,5 @@
+-- not commented yet lmao its broken rn ill fix it once its done
+
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
@@ -9,7 +11,6 @@ local container = screenGui:WaitForChild("AbilityContainer")
 local AbilityFired = ReplicatedStorage:WaitForChild("CrownEvents"):WaitForChild("AbilityFired")
 local activeMoves = {}
 
--- DYNAMIC SCANNER: Finds whatever you named your labels without freezing [1]
 local Ability_Labels = {}
 local ToolName_Label = nil
 
@@ -59,7 +60,6 @@ end
 
 injectBarsNatively()
 
--- Securely clear visibility settings at runtime startup
 for _, textLabel in pairs(Ability_Labels) do
 	textLabel.Visible = false
 end

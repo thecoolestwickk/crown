@@ -1,9 +1,10 @@
+-- define paths and ui elements
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
 
 local dialogueGui = script.Parent
 local frame = dialogueGui:WaitForChild("DialogueFrame")
-local viewport = frame:WaitForChild("NpcPreview") -- Your ViewportFrame
+local viewport = frame:WaitForChild("NpcPreview")
 local nameLabel = frame:WaitForChild("NameLabel")
 local dialogueText = frame:WaitForChild("DialogueText")
 local option1 = frame:WaitForChild("DialogueOption1")
@@ -16,7 +17,7 @@ local currentDialogueId = 0
 local isTextFinished = false
 local currentLineText = ""
 
--- FIX 1: Configure Viewport Light properties so models aren't pure black!
+-- configure light properties so models arent black in the viewportframe
 viewport.Ambient = Color3.fromRGB(200, 200, 200)
 viewport.LightColor = Color3.fromRGB(255, 255, 255)
 viewport.LightDirection = Vector3.new(-1, -1, -1)
@@ -25,7 +26,7 @@ frame.Visible = false
 option1.Visible = false
 option2.Visible = false
 
--- Set up or reuse a WorldModel container inside the Viewport Frame
+-- set up or reuse a WorldModel container inside the viewportframe
 local worldModel = viewport:FindFirstChildOfClass("WorldModel") or Instance.new("WorldModel")
 worldModel.Parent = viewport
 
@@ -35,7 +36,7 @@ vpCamera.Parent = viewport
 viewport.CurrentCamera = vpCamera
 
 local function updateViewportPortrait(npcModel)
-	-- Safely sweep old model clones away
+	-- delete old model clones
 	worldModel:ClearAllChildren()
 
 	if not npcModel or npcModel == workspace or npcModel:IsA("Workspace") then 
@@ -45,10 +46,10 @@ local function updateViewportPortrait(npcModel)
 
 	viewport.Visible = true
 
-	-- FIX 2: Clone the entire NPC character model to preserve clothing, torso, and accessories
+	-- clone the entire npc character model to the viewportframe
 	local modelClone = npcModel:Clone()
 
-	-- Anchor all parts inside the model clone to prevent falling out of the frame
+	-- anchor all parts inside the model clone to prevent falling out of the frame
 	for _, part in ipairs(modelClone:GetDescendants()) do
 		if part:IsA("BasePart") then
 			part.Anchored = true
@@ -58,18 +59,16 @@ local function updateViewportPortrait(npcModel)
 		end
 	end
 
-	-- FIX: Rotates the model 180 degrees so they face the viewport cam view
+	-- rotates the model 180 degrees so they face the viewport camera
 	modelClone:PivotTo(CFrame.new(0, 0, 0) * CFrame.Angles(0, math.rad(180), 0))
 	modelClone.Parent = worldModel
 
-
-	-- Locate the head to calculate the precise camera view offset bounds
 	local targetHead = modelClone:FindFirstChild("Head") or modelClone:FindFirstChildWhichIsA("BasePart", true)
 	if not targetHead then return end
 
-	-- FIX 3: Shift the camera to perfectly display Head, Shoulders, and Top of Torso
+	-- shoft the camera so the npc model is visible
 	local headPos = targetHead.Position
-	-- Back the camera up 3 studs, and look slightly downward at the head/torso region
+	-- back the camera up 3 studs and point it slightly downward
 	vpCamera.CFrame = CFrame.new(headPos + Vector3.new(0, -0.3, 2.8), headPos - Vector3.new(0, 0.4, 0))
 	vpCamera.Focus = targetHead.CFrame
 end
@@ -101,7 +100,7 @@ DialogueNetwork.OnClientEvent:Connect(function(npcName, fullText, npcModel, choi
 	typewrite(fullText, myId)
 	if currentDialogueId ~= myId then return end
 
-	-- FIX 4: Ensure buttons populate and display text after typewriter completes
+	-- ensures buttons populate and display text after typewriter completes
 	if choices and #choices > 0 then
 		if choices[1] and choices[1] ~= "" then
 			option1.Text = choices[1]
@@ -116,14 +115,17 @@ end)
 
 local function selectOption(index)
 	if not isTextFinished then
-		-- Fast-forward text if clicked mid-typewriter animation
+		-- fast-forward text if clicked mid-typewriter animation
 		currentDialogueId = currentDialogueId + 1
 		dialogueText.Text = currentLineText
 		isTextFinished = true
 		return
 	end
 
-	-- FIX 5: Disable frame visibility immediately to capture execution priority rules
+	-- disable frame visibility immediately,, it broke without this but it makes it
+	-- a bit glitchy, so i'd like to make a new solution at some point
+
+	-- TODO: make a new solution to this
 	frame.Visible = false
 	option1.Visible = false
 	option2.Visible = false
@@ -139,14 +141,14 @@ option2.MouseButton1Click:Connect(function()
 	selectOption(2) 
 end)
 
--- FIX 6: General screen clicks will only advance if there are NO option choices visible!
+-- general screen clicks only advance if no options are available
 UserInputService.InputBegan:Connect(function(input, processed)
 	if processed or not frame.Visible then return end
 
-	-- If choice choices are on screen, don't let clicking the background close the box!
+	-- if choices are on screen dont let clicking the background close the box
 	if option1.Visible or option2.Visible then return end
 
 	if input.KeyCode == Enum.KeyCode.Space or input.UserInputType == Enum.UserInputType.MouseButton1 then
-		selectOption(0) -- Normal advance code
+		selectOption(0) -- normal advance code
 	end
 end)

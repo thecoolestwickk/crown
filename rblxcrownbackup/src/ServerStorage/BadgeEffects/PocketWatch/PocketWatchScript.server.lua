@@ -1,3 +1,4 @@
+-- define paths
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 
@@ -16,6 +17,7 @@ local isActive = false
 local addedSpeed = 0
 local targetHumanoid = nil
 
+-- activates higher speed and adds a delayed task to remove the speed
 local function onActivation(player)
 	local currentTime = os.clock()
 	local globalLastUsed = player:GetAttribute("WatchCooldown") or 0
@@ -53,7 +55,7 @@ end
 
 watchActivatedEvent.OnServerEvent:Connect(onActivation)
 
--- safety reset validation if a tool is dropped or unequipped mid-run
+-- reset validation if a tool is dropped or unequipped mid-run
 tool.Unequipped:Connect(function()
 	if targetHumanoid and targetHumanoid.Parent and addedSpeed > 0 then
 		targetHumanoid.WalkSpeed -= addedSpeed

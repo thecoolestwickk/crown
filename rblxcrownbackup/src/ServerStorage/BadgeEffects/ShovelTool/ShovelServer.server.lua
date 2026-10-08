@@ -1,3 +1,4 @@
+-- define paths and parts
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
 local Workspace = game:GetService("Workspace")
@@ -6,13 +7,13 @@ local tool = script.Parent
 local shovelDiggedEvent = tool:WaitForChild("ShovelDigged")
 local handle = tool:WaitForChild("Handle")
 
--- FIX: Safely point directory links to ServerStorage to prevent items falling onto the ground
+-- point directory links to ServerStorage to prevent items falling onto the ground
 local badgeEffects = ServerStorage:WaitForChild("BadgeEffects")
 local lootFolder = badgeEffects:WaitForChild("Loot")
 
 local HintEvent = ReplicatedStorage:WaitForChild("CrownEvents"):WaitForChild("HintEvent")
 
--- 1. Raycast floor detection
+-- raycast floor detection to get the color of the floor
 local function getFloorColor(character)
 	local rootPart = character:FindFirstChild("HumanoidRootPart")
 	if not rootPart then return Color3.fromRGB(120, 120, 120) end
@@ -33,7 +34,7 @@ local function getFloorColor(character)
 	return Color3.fromRGB(120, 120, 120)
 end
 
--- 2. ENHANCED PARTICLES: Ground matching shading with occasional blue/gray tints
+-- 2. bubble particles ground color matching with occasional blue/gray tints
 local function emitFloorParticles(originPart, baseColor)
 	local PARTICLE_COUNT = 35 
 	local random = Random.new()
@@ -53,14 +54,14 @@ local function emitFloorParticles(originPart, baseColor)
 			sphere.CanQuery = false
 			sphere.CanTouch = false
 
-			-- FIX: Blend gray base tones with gentle blue hints occasionally
+			-- blend gray base tones with gentle blue hints occasionally
 			local colorRoll = random:NextInteger(1, 10)
 			if colorRoll <= 2 then
-				-- 20% Chance: Soft slate gray mixed with a distinct cyan/blue tint
+				-- 20% chance for soft slate gray mixed with a cyan/blue tint
 				local grayBase = random:NextInteger(160, 200)
 				sphere.Color = Color3.fromRGB(grayBase - 30, grayBase - 10, grayBase + 45)
 			else
-				-- 80% Chance: Ground matching tone with subtle shadows
+				-- 80% chance for ground matching tone with subtle shadows
 				local variedValue = math.clamp(v + random:NextNumber(-0.15, 0.15), 0, 1)
 				local variedSat = math.clamp(s + random:NextNumber(-0.1, 0.1), 0, 1)
 				sphere.Color = Color3.fromHSV(h, variedSat, variedValue)
@@ -98,7 +99,7 @@ local function emitFloorParticles(originPart, baseColor)
 	end
 end
 
--- 3. Clear old items securely
+-- clear old dug up items
 local function wipeDugItemsFromInventory(player)
 	local backpack = player:FindFirstChild("Backpack")
 	local character = player.Character
@@ -115,7 +116,7 @@ local function wipeDugItemsFromInventory(player)
 	end
 end
 
--- 4. CLEAN CLONING & HAND WELD PIPELINES
+-- cloning and hand welding pipelines
 local function generateDugArtifact(player, templateObject)
 	local newArtifact = templateObject:Clone()
 
@@ -128,7 +129,7 @@ local function generateDugArtifact(player, templateObject)
 				desc.CanCollide = false 
 				desc.Massless = true 
 
-				-- FIX: Generate structural welds to ensure the mesh renders inside your hand plane cleanly
+				-- generate structural welds to ensure the mesh renders inside the hand plane
 				if artifactHandle and desc ~= artifactHandle then
 					local weld = Instance.new("WeldConstraint")
 					weld.Part0 = artifactHandle
@@ -138,7 +139,7 @@ local function generateDugArtifact(player, templateObject)
 			end
 		end
 	else
-		-- Fallback wrapper setup
+		-- fallback wrapper setup
 		local wrapperTool = Instance.new("Tool")
 		wrapperTool.Name = templateObject.Name
 		wrapperTool.RequiresHandle = true
@@ -184,11 +185,11 @@ shovelDiggedEvent.OnServerEvent:Connect(function(player)
 	local customTextColor = selectedTemplate:GetAttribute("HintColor") or Color3.fromRGB(255, 255, 255)
 	local message = "you dug up a " .. selectedTemplate.Name .. "!"
 
-	-- FIX: Explicitly match font size parameters with your game's baseline text style rules
+	-- fire a local hint saying what item you dug up
 	HintEvent:FireClient(player, message, {
 		duration = 2.5,
 		textcolor = customTextColor,
-		textsize = 20, -- Matches the exact typography configurations
+		textsize = 20,
 		typewriter = true
 	})
 end)

@@ -1,7 +1,7 @@
 local Players = game:GetService("Players")
 local CollectionService = game:GetService("CollectionService")
 
--- default configuration
+-- default spawn tag configuration
 local DEFAULT_SPAWN_TAG = ""
 
 -- function to route the player to the matching tagged part
@@ -9,7 +9,7 @@ local function spawnPlayerAtTag(player, character, spawnTag)
 	-- look for a part or spawn location tagged with the tag
 	for _, object in pairs(CollectionService:GetTagged(spawnTag)) do
 		if object:IsA("BasePart") then
-			-- Pivot the character safely above the destination point
+			-- pivot the character to above the destination point
 			local targetCFrame = object.CFrame + Vector3.new(0, 4, 0)
 			character:PivotTo(targetCFrame)
 			return true
@@ -27,7 +27,7 @@ Players.PlayerAdded:Connect(function(player)
 			local joinData = player:GetJoinData()
 			local teleportData = joinData.TeleportData
 
-			local spawnTag = DEFAULT_SPAWN_TAG -- Fallback default
+			local spawnTag = DEFAULT_SPAWN_TAG -- fallback default
 
 			if teleportData and teleportData.ArrivalSpawnTag then
 				spawnTag = teleportData.ArrivalSpawnTag

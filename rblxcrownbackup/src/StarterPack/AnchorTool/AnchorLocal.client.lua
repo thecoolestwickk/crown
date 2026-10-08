@@ -1,3 +1,4 @@
+-- define paths and variables
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
@@ -11,47 +12,54 @@ local AnchorAttack = tool:WaitForChild("AnchorAttack")
 local AnchorDropAbility = tool:WaitForChild("AnchorDropAbility")
 local AbilityFired = ReplicatedStorage:WaitForChild("CrownEvents"):WaitForChild("AbilityFired")
 
+-- animations setup
 local animsFolder = tool:WaitForChild("Anims")
 local idleAnim = animsFolder:WaitForChild("Idle")
 local m1Anim = animsFolder:WaitForChild("M1")
 local beamAnim = animsFolder:WaitForChild("Beam")
 local walkAnim = animsFolder:WaitForChild("Walk")
 
+-- bool state tracking
 local attackCooldown = false
 local dropCooldown = false
 local shipyardCooldown = false
 local isEquipped = false
 local inShipyardMode = false
 
+-- combo tracking
 local currentCombo = 1
 local lastAttackTime = 0
 local COMBO_WINDOW = 1.2
 
+-- animation state tracking
 local activeIdleTrack = nil
 local activeM1Track = nil
 local activeBeamTrack = nil
 local activeWalkTrack = nil
 
--- Unified move table structure using explicit string dictionary tags
+-- move table structure using dictionary tags
 local MOVES = {
-	["1"] = {Slot = 1, Name = "Cleave Swipes", Key = "LClick", Cooldown = 0.3, ToolIdentity = "⚓ ANCHOR GEAR v2"},
-	["2"] = {Slot = 2, Name = "Shipyard Overdrive", Key = "R", Cooldown = 0.8, ToolIdentity = "⚓ ANCHOR GEAR v2"},
-	["3"] = {Slot = 3, Name = "Downward Spike Slam", Key = "X", Cooldown = 2.0, ToolIdentity = "⚓ ANCHOR GEAR v2"},
-	["4"] = {Slot = 4, Name = "Overdrive Secret Beam", Key = "F", Cooldown = 1.5, ToolIdentity = "⚓ ANCHOR GEAR v2"}
+	["1"] = {Slot = 1, Name = "Cleave", Key = "LClick", Cooldown = 0.3, ToolIdentity = "krakenheart pendant"},
+	["2"] = {Slot = 2, Name = "Enter Shipyard Mode", Key = "R", Cooldown = 0.8, ToolIdentity = "krakenheart pendant"},
+	["3"] = {Slot = 3, Name = "Dive", Key = "X", Cooldown = 2.0, ToolIdentity = "krakenheart pendant"},
+	["4"] = {Slot = 4, Name = "KrakenHeart Beam", Key = "F", Cooldown = 1.5, ToolIdentity = "krakenheart pendant"}
 }
 
+-- tell server what abilities the item has for the cooldown ui
 local function broadcastAbilities()
 	if CollectionService:HasTag(tool, "weapon") then
 		AbilityFired:FireServer("EquipLoadout", MOVES)
 	end
 end
 
+-- flash particles red temporarily if cooldown is active
 local function failFlash(slot)
 	if CollectionService:HasTag(tool, "weapon") then
 		AbilityFired:FireServer("TriggerFailFlash", slot)
 	end
 end
 
+-- runs when the tool is used
 tool.Activated:Connect(function()
 	if not isEquipped then return end
 	if attackCooldown or not AnchorAttack then 
@@ -60,6 +68,7 @@ tool.Activated:Connect(function()
 	end
 	attackCooldown = true
 
+	-- combo m1 attack (teensy bit broken atm)
 	local character = player.Character
 	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
 	local animator = humanoid and humanoid:FindFirstChildOfClass("Animator")
@@ -91,6 +100,7 @@ tool.Activated:Connect(function()
 	attackCooldown = false
 end)
 
+-- special non-m1 keybinds
 UserInputService.InputBegan:Connect(function(input, processed)
 	if processed or not isEquipped then return end
 
@@ -99,6 +109,8 @@ UserInputService.InputBegan:Connect(function(input, processed)
 			failFlash(MOVES["2"].Slot)
 			return
 		end
+
+		-- activate shipyard mode with keybind R
 		shipyardCooldown = true
 		attackCooldown = true
 		inShipyardMode = not inShipyardMode
@@ -119,6 +131,7 @@ UserInputService.InputBegan:Connect(function(input, processed)
 			return
 		end
 
+		-- dive attack
 		dropCooldown = true
 		AnchorDropAbility:FireServer()
 
@@ -131,6 +144,8 @@ UserInputService.InputBegan:Connect(function(input, processed)
 			failFlash(MOVES["4"].Slot)
 			return
 		end
+
+		-- beam attack
 		attackCooldown = true
 
 		local character = player.Character
@@ -161,6 +176,7 @@ RunService.RenderStepped:Connect(function()
 
 	local horizontalVelocity = (rootPart.AssemblyLinearVelocity * Vector3.new(1, 0, 1)).Magnitude
 
+	-- walking animation with animation speed changing with walkspeed
 	if horizontalVelocity > 1.5 and humanoid.FloorMaterial ~= Enum.Material.Air then
 		if activeIdleTrack and activeIdleTrack.IsPlaying then activeIdleTrack:Stop(0.2) end
 		if activeWalkTrack then
@@ -177,12 +193,14 @@ RunService.RenderStepped:Connect(function()
 	end
 end)
 
+-- run when the tool is equipped
 tool.Equipped:Connect(function()
 	isEquipped = true
 	local character = player.Character
 	local humanoid = character and character:WaitForChild("Humanoid", 5)
 	local animator = humanoid and humanoid:WaitForChild("Animator", 5)
 
+	-- idle animation
 	if animator then
 		if idleAnim then
 			activeIdleTrack = animator:LoadAnimation(idleAnim)
@@ -196,6 +214,7 @@ tool.Equipped:Connect(function()
 	broadcastAbilities()
 end)
 
+-- runs when tool is unequipped
 tool.Unequipped:Connect(function()
 	isEquipped = false
 	inShipyardMode = false

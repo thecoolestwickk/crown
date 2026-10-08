@@ -1,3 +1,4 @@
+-- define paths and references
 local RunService = game:GetService("RunService")
 local tool = script.Parent
 local watchActivatedEvent = tool:WaitForChild("WatchActivated")
@@ -9,7 +10,7 @@ local centerPin = watchModel:WaitForChild("CenterPin")
 
 local COOLDOWN_DURATION = 3
 local BOOST_DURATION = 15
-local SPIN_CLOCKWISE = false -- Set to true to reverse direction
+local SPIN_CLOCKWISE = false -- true reverses spin direction
 
 local lastUsedTime = 0
 local isActive = false
@@ -23,6 +24,7 @@ local minuteRoot = minuteHandModel.PrimaryPart or minuteHandModel:FindFirstChild
 local hourJoint = hourRoot:WaitForChild("HandJoint")
 local minuteJoint = minuteRoot:WaitForChild("HandJoint")
 
+-- runs when the tool is activated
 tool.Activated:Connect(function()
 	local currentTime = os.clock()
 
@@ -34,6 +36,7 @@ tool.Activated:Connect(function()
 	lastUsedTime = currentTime
 	watchActivatedEvent:FireServer()
 
+	-- calls a hint
 	if _G.ShowLocalHint then
 		_G.ShowLocalHint("time is of the essence! your speed has been doubled for 15 seconds.", {
 			duration = 3,
@@ -63,7 +66,7 @@ RunService.RenderStepped:Connect(function(deltaTime)
 			end
 		end
 
-		-- Rotates perfectly around the CenterPin axis
+		-- rotates around the CenterPin axis
 		hourJoint.C0 = CFrame.Angles(math.rad(hourAngle), 0, 0)
 		minuteJoint.C0 = CFrame.Angles(math.rad(minuteAngle), 0, 0)
 	end

@@ -1,3 +1,4 @@
+-- welds parts together and creates joints for the center hand animation
 local tool = script.Parent
 local handle = tool:WaitForChild("Handle")
 local watchModel = tool:WaitForChild("WatchModel")

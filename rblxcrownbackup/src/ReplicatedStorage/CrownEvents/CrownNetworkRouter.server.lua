@@ -1,3 +1,4 @@
+-- route ability usage events to the ability ui
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local CrownEvents = ReplicatedStorage:WaitForChild("CrownEvents")
 local AbilityFired = CrownEvents:WaitForChild("AbilityFired")

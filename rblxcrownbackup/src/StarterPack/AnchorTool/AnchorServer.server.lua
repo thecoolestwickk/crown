@@ -1,3 +1,4 @@
+-- define paths and variables
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
@@ -12,6 +13,7 @@ local AnchorDropAbility = tool:WaitForChild("AnchorDropAbility")
 
 local shipyardStates = {}
 
+-- anchor colors
 local COLORS = {
 	NormalBody = Color3.fromRGB(13, 105, 172),
 	NormalTrim = Color3.fromRGB(9, 137, 207),
@@ -19,11 +21,11 @@ local COLORS = {
 	ShipyardTrim = Color3.fromRGB(16, 42, 220)
 }
 
--- Locates the specific model part containing your explicit configuration tag name
+-- locates the specific model part containing configuration tag
 local function getCorePart()
 	if anchorModel then
 		for _, part in ipairs(anchorModel:GetDescendants()) do
-			if part:IsA("BasePart") and part.Name == "core" then
+			if part:IsA("BasePart") and part:hasTag("core") then
 				return part
 			end
 		end
@@ -31,6 +33,7 @@ local function getCorePart()
 	return handle
 end
 
+-- function to tween the colors of the anchor when entering shipyard mode
 local function tweenAnchorColors(isOverdrive)
 	local targetBodyColor = isOverdrive and COLORS.ShipyardBody or COLORS.NormalBody
 	local targetTrimColor = isOverdrive and COLORS.ShipyardTrim or COLORS.NormalTrim
@@ -53,7 +56,8 @@ local function getAnchorBaseColor()
 	return COLORS.NormalBody
 end
 
--- PROCEDURAL SABRE^2 SPHERE INDICATOR GENERATOR
+-- sphere particle generator inspired by chaos corporation's "sabre²"
+-- https://www.youtube.com/watch?v=UiOMyfx2IE8
 local function generateSabre2VFXSphere(position, parentInstance)
 	local random = Random.new()
 	local sphere = Instance.new("Part")
@@ -96,6 +100,7 @@ local function generateSabre2VFXSphere(position, parentInstance)
 	end)
 end
 
+-- particles
 local function injectSabre2BubbleEngines()
 	local corePart = getCorePart()
 	if corePart:FindFirstChild("ShipyardBubbles") then return end
@@ -132,6 +137,7 @@ local function injectSabre2BubbleEngines()
 	mist.Parent = corePart
 end
 
+-- rubble effect for the slam and beam
 local function spawnVanishingRubbleBlock(spawnPosition, baseColor, baseMaterial)
 	local random = Random.new()
 	local rubble = Instance.new("Part")
@@ -168,6 +174,7 @@ local function spawnVanishingRubbleBlock(spawnPosition, baseColor, baseMaterial)
 	end)
 end
 
+-- beam vfx rings and rubble on the edge
 local function spawnBeamRingsWithEdgeRubble(startPos, endPos, character)
 	local distance = (endPos - startPos).Magnitude
 	local baseColor = getAnchorBaseColor()
@@ -201,7 +208,7 @@ local function spawnBeamRingsWithEdgeRubble(startPos, endPos, character)
 				generateSabre2VFXSphere(randomSphereOffset, Workspace)
 			end
 
-			local flankOffsets = {-5, -2.5, 2.5, 5}
+			local flankOffsets = {-3, -2.5, 2.5, 3}
 			for _, sideOffset in ipairs(flankOffsets) do
 				local flankOrigin = (pointCFrame * CFrame.new(sideOffset, 2, 0)).Position
 				local floorRay = Workspace:Raycast(flankOrigin, Vector3.new(0, -6, 0), rayParams)
@@ -214,13 +221,13 @@ local function spawnBeamRingsWithEdgeRubble(startPos, endPos, character)
 	end
 end
 
+-- runs when tool is equipped
 tool.Equipped:Connect(function()
 	task.wait(0.02)
 	injectSabre2BubbleEngines()
 end)
--- ============================================================================
--- ⚔️ COMBAT CALCULATIONS & NETWORK OVERDRIVE MANAGERS
--- ============================================================================
+
+-- spawn particles at the core part of the anchor when in shipyard mode
 task.spawn(function()
 	local random = Random.new()
 	while true do
@@ -239,6 +246,7 @@ task.spawn(function()
 	end
 end)
 
+-- handles attacks and particles
 AnchorAttack.OnServerEvent:Connect(function(player, attackType, stateValue)
 	local character = player.Character
 	if not character or not character:FindFirstChild(tool.Name) then return end
@@ -337,6 +345,7 @@ AnchorAttack.OnServerEvent:Connect(function(player, attackType, stateValue)
 	end
 end)
 
+-- anchor dive ability
 AnchorDropAbility.OnServerEvent:Connect(function(player)
 	local character = player.Character
 	local rootPart = character and character:FindFirstChild("HumanoidRootPart")

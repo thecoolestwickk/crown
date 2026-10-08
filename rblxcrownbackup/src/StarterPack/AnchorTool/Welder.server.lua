@@ -1,3 +1,4 @@
+-- yet another automatically welding script for the parts in the model of the tool...
 local tool = script.Parent
 local handle = tool:WaitForChild("Handle")
 local anchorModel = tool:WaitForChild("AnchorModel")
